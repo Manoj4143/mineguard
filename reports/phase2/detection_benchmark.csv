@@ -1,0 +1,5 @@
+scenario,total_frames,gt_instances,yolov8n_total_detections,yolov8n_mean_conf,yolo11n_total_detections,yolo11n_mean_conf
+clear,40,80,28,0.222,2,0.02
+light_fog,40,80,17,0.138,0,0.0
+dense_fog,40,80,16,0.153,0,0.0
+night,40,80,9,0.077,1,0.008

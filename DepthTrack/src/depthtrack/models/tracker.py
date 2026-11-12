@@ -14,9 +14,14 @@ class ObjectTracker:
     """Associates detections across frames and tracks their motion history."""
 
     def __init__(self, max_history: int = 30):
-        import supervision as sv
+        # Support both direct import (supervision >= 0.28) and fallback
+        try:
+            from supervision.tracker.byte_tracker.core import ByteTrack
+            self.tracker = ByteTrack()
+        except ImportError:
+            import supervision as sv
+            self.tracker = sv.ByteTrack()
 
-        self.tracker = sv.ByteTrack()
         self.trajectories: dict[int, collections.deque] = collections.defaultdict(
             lambda: collections.deque(maxlen=max_history)
         )

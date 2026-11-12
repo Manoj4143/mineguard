@@ -1,0 +1,3 @@
+model,mean_ms,median_ms,p95_ms,fps,peak_vram_mb
+YOLOv8n,9.77,9.36,12.36,102.38,99.4
+YOLO11n,12.22,11.76,15.94,81.84,100.2

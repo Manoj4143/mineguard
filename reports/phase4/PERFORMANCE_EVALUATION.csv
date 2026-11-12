@@ -1,0 +1,5 @@
+scenario,original_fps,integrated_fps,original_vram_mb,integrated_vram_mb
+clear_mine_road,1.3,13.0,164.0,227.4
+light_fog_road,28.2,16.2,177.3,227.4
+dense_fog_road,27.4,17.1,177.3,227.4
+night_haul_road,45.5,17.0,181.0,227.4

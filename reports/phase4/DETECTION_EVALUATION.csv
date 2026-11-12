@@ -1,0 +1,5 @@
+scenario,frames_evaluated,original_total_detections,integrated_total_detections,detection_gain_pct
+clear_mine_road,30,0,30,3000.0
+light_fog_road,30,0,30,3000.0
+dense_fog_road,30,0,30,3000.0
+night_haul_road,30,0,0,0.0

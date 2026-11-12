@@ -1,0 +1,5 @@
+scenario,device,resolution,frames,input_fps,duration_s,effective_fps,max_vram_mb,output_video,output_size_mb
+mine_clear,cuda,640x480,40,10.0,31.57,1.27,217.4,DepthTrack\output\scenarios\result_mine_clear.mp4,6.0
+mine_dense_fog,cuda,640x480,40,10.0,3.44,11.64,217.8,DepthTrack\output\scenarios\result_mine_dense_fog.mp4,7.19
+mine_light_fog,cuda,640x480,40,10.0,8.54,4.68,217.8,DepthTrack\output\scenarios\result_mine_light_fog.mp4,6.93
+mine_night,cuda,640x480,40,10.0,3.32,12.04,217.8,DepthTrack\output\scenarios\result_mine_night.mp4,6.09

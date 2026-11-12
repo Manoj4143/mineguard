@@ -1,0 +1,50 @@
+[
+  {
+    "scenario": "mine_clear",
+    "device": "cuda",
+    "resolution": "640x480",
+    "frames": 40,
+    "input_fps": 10.0,
+    "duration_s": 31.57,
+    "effective_fps": 1.27,
+    "max_vram_mb": 217.4,
+    "output_video": "DepthTrack\\output\\scenarios\\result_mine_clear.mp4",
+    "output_size_mb": 6.0
+  },
+  {
+    "scenario": "mine_dense_fog",
+    "device": "cuda",
+    "resolution": "640x480",
+    "frames": 40,
+    "input_fps": 10.0,
+    "duration_s": 3.44,
+    "effective_fps": 11.64,
+    "max_vram_mb": 217.8,
+    "output_video": "DepthTrack\\output\\scenarios\\result_mine_dense_fog.mp4",
+    "output_size_mb": 7.19
+  },
+  {
+    "scenario": "mine_light_fog",
+    "device": "cuda",
+    "resolution": "640x480",
+    "frames": 40,
+    "input_fps": 10.0,
+    "duration_s": 8.54,
+    "effective_fps": 4.68,
+    "max_vram_mb": 217.8,
+    "output_video": "DepthTrack\\output\\scenarios\\result_mine_light_fog.mp4",
+    "output_size_mb": 6.93
+  },
+  {
+    "scenario": "mine_night",
+    "device": "cuda",
+    "resolution": "640x480",
+    "frames": 40,
+    "input_fps": 10.0,
+    "duration_s": 3.32,
+    "effective_fps": 12.04,
+    "max_vram_mb": 217.8,
+    "output_video": "DepthTrack\\output\\scenarios\\result_mine_night.mp4",
+    "output_size_mb": 6.09
+  }
+]

@@ -1,0 +1,5 @@
+scenario,yolov8n_unique_track_ids,yolov8n_frames_with_tracks,yolo11n_unique_track_ids,yolo11n_frames_with_tracks
+clear,2,15,0,0
+light_fog,1,10,0,0
+dense_fog,2,14,0,0
+night,2,4,0,0

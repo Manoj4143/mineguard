@@ -1,0 +1,5 @@
+scenario,original_unique_tracks,integrated_unique_tracks
+clear_mine_road,0,1
+light_fog_road,0,1
+dense_fog_road,0,1
+night_haul_road,0,0

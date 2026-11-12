@@ -1,0 +1,63 @@
+{
+  "hardware": {
+    "gpu": "NVIDIA GeForce RTX 3050 6GB Laptop GPU",
+    "vram_gb": 6.0,
+    "torch": "2.11.0+cu128"
+  },
+  "performance": [
+    {
+      "model": "YOLOv8n",
+      "mean_ms": 9.77,
+      "median_ms": 9.36,
+      "p95_ms": 12.36,
+      "fps": 102.38,
+      "peak_vram_mb": 99.4
+    },
+    {
+      "model": "YOLO11n",
+      "mean_ms": 12.22,
+      "median_ms": 11.76,
+      "p95_ms": 15.94,
+      "fps": 81.84,
+      "peak_vram_mb": 100.2
+    }
+  ],
+  "scenario_detection": [
+    {
+      "scenario": "clear",
+      "total_frames": 40,
+      "gt_instances": 80,
+      "yolov8n_total_detections": 28,
+      "yolov8n_mean_conf": 0.222,
+      "yolo11n_total_detections": 2,
+      "yolo11n_mean_conf": 0.02
+    },
+    {
+      "scenario": "light_fog",
+      "total_frames": 40,
+      "gt_instances": 80,
+      "yolov8n_total_detections": 17,
+      "yolov8n_mean_conf": 0.138,
+      "yolo11n_total_detections": 0,
+      "yolo11n_mean_conf": 0.0
+    },
+    {
+      "scenario": "dense_fog",
+      "total_frames": 40,
+      "gt_instances": 80,
+      "yolov8n_total_detections": 16,
+      "yolov8n_mean_conf": 0.153,
+      "yolo11n_total_detections": 0,
+      "yolo11n_mean_conf": 0.0
+    },
+    {
+      "scenario": "night",
+      "total_frames": 40,
+      "gt_instances": 80,
+      "yolov8n_total_detections": 9,
+      "yolov8n_mean_conf": 0.077,
+      "yolo11n_total_detections": 1,
+      "yolo11n_mean_conf": 0.008
+    }
+  ]
+}

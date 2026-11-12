@@ -1,0 +1,126 @@
+{
+  "hardware": {
+    "device": "cuda",
+    "gpu": "NVIDIA GeForce RTX 3050 6GB Laptop GPU"
+  },
+  "performance": [
+    {
+      "scenario": "clear_mine_road",
+      "original_fps": 1.3,
+      "integrated_fps": 13.0,
+      "original_vram_mb": 164.0,
+      "integrated_vram_mb": 227.4
+    },
+    {
+      "scenario": "light_fog_road",
+      "original_fps": 28.2,
+      "integrated_fps": 16.2,
+      "original_vram_mb": 177.3,
+      "integrated_vram_mb": 227.4
+    },
+    {
+      "scenario": "dense_fog_road",
+      "original_fps": 27.4,
+      "integrated_fps": 17.1,
+      "original_vram_mb": 177.3,
+      "integrated_vram_mb": 227.4
+    },
+    {
+      "scenario": "night_haul_road",
+      "original_fps": 45.5,
+      "integrated_fps": 17.0,
+      "original_vram_mb": 181.0,
+      "integrated_vram_mb": 227.4
+    }
+  ],
+  "detection": [
+    {
+      "scenario": "clear_mine_road",
+      "frames_evaluated": 30,
+      "original_total_detections": 0,
+      "integrated_total_detections": 30,
+      "detection_gain_pct": 3000.0
+    },
+    {
+      "scenario": "light_fog_road",
+      "frames_evaluated": 30,
+      "original_total_detections": 0,
+      "integrated_total_detections": 30,
+      "detection_gain_pct": 3000.0
+    },
+    {
+      "scenario": "dense_fog_road",
+      "frames_evaluated": 30,
+      "original_total_detections": 0,
+      "integrated_total_detections": 30,
+      "detection_gain_pct": 3000.0
+    },
+    {
+      "scenario": "night_haul_road",
+      "frames_evaluated": 30,
+      "original_total_detections": 0,
+      "integrated_total_detections": 0,
+      "detection_gain_pct": 0.0
+    }
+  ],
+  "tracking": [
+    {
+      "scenario": "clear_mine_road",
+      "original_unique_tracks": 0,
+      "integrated_unique_tracks": 1
+    },
+    {
+      "scenario": "light_fog_road",
+      "original_unique_tracks": 0,
+      "integrated_unique_tracks": 1
+    },
+    {
+      "scenario": "dense_fog_road",
+      "original_unique_tracks": 0,
+      "integrated_unique_tracks": 1
+    },
+    {
+      "scenario": "night_haul_road",
+      "original_unique_tracks": 0,
+      "integrated_unique_tracks": 0
+    }
+  ],
+  "alerts": [
+    {
+      "scenario": "clear_mine_road",
+      "original_safe": 0,
+      "original_caution": 0,
+      "original_critical": 0,
+      "integrated_safe": 0,
+      "integrated_caution": 30,
+      "integrated_critical": 0
+    },
+    {
+      "scenario": "light_fog_road",
+      "original_safe": 0,
+      "original_caution": 0,
+      "original_critical": 0,
+      "integrated_safe": 0,
+      "integrated_caution": 30,
+      "integrated_critical": 0
+    },
+    {
+      "scenario": "dense_fog_road",
+      "original_safe": 0,
+      "original_caution": 0,
+      "original_critical": 0,
+      "integrated_safe": 0,
+      "integrated_caution": 30,
+      "integrated_critical": 0
+    },
+    {
+      "scenario": "night_haul_road",
+      "original_safe": 0,
+      "original_caution": 0,
+      "original_critical": 0,
+      "integrated_safe": 0,
+      "integrated_caution": 0,
+      "integrated_critical": 0
+    }
+  ]
+}
