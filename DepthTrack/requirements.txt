@@ -1,0 +1,22 @@
+# Core runtime dependencies (pinned for reproducibility).
+# For GPU support, install the CUDA build of torch/torchvision from
+# https://pytorch.org/get-started/locally/ instead of the default wheels.
+
+numpy>=1.26.0
+Pillow>=10.0
+PyYAML>=6.0
+tqdm>=4.65
+scipy>=1.10
+
+# Deep learning stack.
+torch>=2.6.0
+torchvision
+transformers>=4.40.2
+timm>=0.9
+accelerate>=0.27
+
+# Computer vision / detection / tracking.
+opencv-python>=4.8
+ultralytics>=8.1
+supervision>=0.18
+ffmpeg-python>=0.2

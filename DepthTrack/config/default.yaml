@@ -1,0 +1,51 @@
+# Default configuration for the DepthTrack.
+# Every value here matches the built-in defaults; copy and edit as needed,
+# then pass with:  depthtrack input.mp4 --config config/default.yaml
+
+model:
+  detector_weights: yolov8n.pt          # YOLO weights (resolved against --assets-dir)
+  depth_model: depth-anything/Depth-Anything-V2-Small-hf
+  confidence: 0.35                       # detection confidence threshold (0, 1]
+  device: cpu                            # cpu | cuda
+  track_history: 30                      # max trajectory points retained per track
+  vehicle_classes:                       # COCO id -> label
+    1: bicycle
+    2: car
+    3: motorcycle
+    5: bus
+    7: truck
+
+distance:
+  focal_length_px: 700.0                 # assumed camera focal length (pixels)
+  real_vehicle_width_m: 2.0              # fallback width for unknown classes (m)
+  vehicle_widths_m:                      # per-class real-world widths (COCO id -> metres)
+    1: 0.6                               # bicycle
+    2: 1.8                               # car
+    3: 0.8                               # motorcycle
+    5: 2.5                               # bus
+    7: 2.5                               # truck
+  depth_near_m: 1.0                      # metric distance mapped to depth=0
+  depth_far_m: 80.0                      # metric distance mapped to depth=1
+  depth_weight: 0.5                      # blend: depth cue vs projection cue [0, 1]
+  min_distance_m: 1.0
+  max_distance_m: 100.0
+
+risk:
+  danger_m: 8.0                          # < this AND in-lane  -> DANGER
+  warning_m: 15.0                        # < this             -> WARNING
+  caution_m: 25.0                        # < this             -> CAUTION
+  danger_lateral_offset: 0.4             # in-lane threshold (fraction of half-width)
+
+video:
+  output_dir: output
+  output_name: final_output.mp4
+  output_width: 1920
+  output_height: 540
+  divider_width: 4
+  work_width: 640                        # inference working width (frames downscaled)
+  depth_input_width: 320                 # depth model input width
+  depth_input_height: 192                # depth model input height
+  default_fps: 25.0                      # used when source FPS is unavailable
+  encode_codec: libx264
+  encode_preset: fast
+  encode_crf: 23
