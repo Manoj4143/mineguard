@@ -1,0 +1,36 @@
+{
+  "active_engine": "UnifiedMineGuardPerception",
+  "is_fallback": false,
+  "engine_error": null,
+  "system_status": "ONLINE",
+  "pipeline_mode": "FOG_ADAPTIVE",
+  "fog_condition": "DENSE_FOG",
+  "ambient_lux": 168.3,
+  "road_status": "PROXIMITY WARNING",
+  "road_status_detail": "Caution: Approaching vehicle detected.",
+  "road_status_class": "caution",
+  "highest_risk": "CAUTION",
+  "fps": 2.7,
+  "latency_ms": 367.5,
+  "active_vehicles_count": 1,
+  "vehicles": [
+    {
+      "track_id": 1,
+      "class_name": "TRUCK",
+      "confidence": 0.76,
+      "bbox": [
+        90,
+        157,
+        257,
+        246
+      ],
+      "distance_m": 28.3,
+      "relative_depth": 0.429,
+      "speed_kmh": -0.3,
+      "ttc_s": null,
+      "risk_tier": "CAUTION"
+    }
+  ],
+  "dropped_frames": 0,
+  "worker_frame_id": 9
+}

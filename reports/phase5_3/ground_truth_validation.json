@@ -1,0 +1,18 @@
+{
+  "valid": true,
+  "total_manifest_entries": 100,
+  "validated_entries": 100,
+  "missing_labels": 0,
+  "invalid_coords": 0,
+  "mismatched_frames": 0,
+  "class_distribution": {
+    "truck": 100
+  },
+  "entries_by_condition": {
+    "clear": 25,
+    "light_fog": 25,
+    "medium_fog": 25,
+    "dense_fog": 25
+  },
+  "errors": []
+}

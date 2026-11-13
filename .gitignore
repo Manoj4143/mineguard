@@ -33,4 +33,10 @@ htmlcov/
 # Outputs & temporary files
 DepthTrack/output/
 DepthTrack/data/sample_test.mp4
+DepthTrack/data/user_uploads/
+backups/
+
+# Heavy video scenarios (kept locally, not pushed to git)
+data/scenarios/real_mining/
+
 

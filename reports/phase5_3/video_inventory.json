@@ -1,0 +1,324 @@
+[
+  {
+    "filename": "mine_clear.mp4",
+    "path": "D:\\Mineguard_project_2\\DepthTrack\\data\\scenarios\\mine_clear.mp4",
+    "file_size_bytes": 80814,
+    "file_size_mb": 0.08,
+    "resolution": "640x480",
+    "width": 640,
+    "height": 480,
+    "fps": 10.0,
+    "frame_count": 40,
+    "duration_seconds": 4.0,
+    "imagery_type": "SYNTHETIC_PATTERN",
+    "description": "Synthetic OpenCV drawings",
+    "yolo_detected_classes": [
+      "sports ball"
+    ],
+    "sample_confidences": [
+      0.31
+    ],
+    "visible_objects": "None / Geometric Drawings",
+    "lighting_visibility": "Clear daylight",
+    "mineguard_suitability": "LOW (Synthetic Test Pattern Only)"
+  },
+  {
+    "filename": "mine_light_fog.mp4",
+    "path": "D:\\Mineguard_project_2\\DepthTrack\\data\\scenarios\\mine_light_fog.mp4",
+    "file_size_bytes": 66980,
+    "file_size_mb": 0.06,
+    "resolution": "640x480",
+    "width": 640,
+    "height": 480,
+    "fps": 10.0,
+    "frame_count": 40,
+    "duration_seconds": 4.0,
+    "imagery_type": "SYNTHETIC_PATTERN",
+    "description": "Synthetic OpenCV drawings + gaussian fog",
+    "yolo_detected_classes": [],
+    "sample_confidences": [],
+    "visible_objects": "None / Geometric Drawings",
+    "lighting_visibility": "Foggy",
+    "mineguard_suitability": "LOW (Synthetic Test Pattern Only)"
+  },
+  {
+    "filename": "mine_dense_fog.mp4",
+    "path": "D:\\Mineguard_project_2\\DepthTrack\\data\\scenarios\\mine_dense_fog.mp4",
+    "file_size_bytes": 47876,
+    "file_size_mb": 0.05,
+    "resolution": "640x480",
+    "width": 640,
+    "height": 480,
+    "fps": 10.0,
+    "frame_count": 40,
+    "duration_seconds": 4.0,
+    "imagery_type": "SYNTHETIC_PATTERN",
+    "description": "Synthetic OpenCV drawings + heavy white alpha blend",
+    "yolo_detected_classes": [],
+    "sample_confidences": [],
+    "visible_objects": "None / Geometric Drawings",
+    "lighting_visibility": "Foggy",
+    "mineguard_suitability": "LOW (Synthetic Test Pattern Only)"
+  },
+  {
+    "filename": "mine_night.mp4",
+    "path": "D:\\Mineguard_project_2\\DepthTrack\\data\\scenarios\\mine_night.mp4",
+    "file_size_bytes": 69306,
+    "file_size_mb": 0.07,
+    "resolution": "640x480",
+    "width": 640,
+    "height": 480,
+    "fps": 10.0,
+    "frame_count": 40,
+    "duration_seconds": 4.0,
+    "imagery_type": "SYNTHETIC_PATTERN",
+    "description": "Synthetic OpenCV drawings + dark alpha blend",
+    "yolo_detected_classes": [],
+    "sample_confidences": [],
+    "visible_objects": "None / Geometric Drawings",
+    "lighting_visibility": "Low-light / Night",
+    "mineguard_suitability": "LOW (Synthetic Test Pattern Only)"
+  },
+  {
+    "filename": "sample_test.mp4",
+    "path": "D:\\Mineguard_project_2\\DepthTrack\\data\\sample_test.mp4",
+    "file_size_bytes": 29719,
+    "file_size_mb": 0.03,
+    "resolution": "640x480",
+    "width": 640,
+    "height": 480,
+    "fps": 10.0,
+    "frame_count": 30,
+    "duration_seconds": 3.0,
+    "imagery_type": "SYNTHETIC_PATTERN",
+    "description": "Synthetic low-contrast pattern",
+    "yolo_detected_classes": [],
+    "sample_confidences": [],
+    "visible_objects": "None / Geometric Drawings",
+    "lighting_visibility": "Daylight / Dusty",
+    "mineguard_suitability": "LOW (Synthetic Test Pattern Only)"
+  },
+  {
+    "filename": "final_output.mp4",
+    "path": "D:\\Mineguard_project_2\\DepthTrack\\output\\final_output.mp4",
+    "file_size_bytes": 3245139,
+    "file_size_mb": 3.09,
+    "resolution": "1924x540",
+    "width": 1924,
+    "height": 540,
+    "fps": 10.0,
+    "frame_count": 30,
+    "duration_seconds": 3.0,
+    "imagery_type": "SYNTHETIC_PATTERN",
+    "description": "Composite processed demo video",
+    "yolo_detected_classes": [
+      "umbrella"
+    ],
+    "sample_confidences": [
+      0.25,
+      0.54
+    ],
+    "visible_objects": "None / Geometric Drawings",
+    "lighting_visibility": "Daylight / Dusty",
+    "mineguard_suitability": "LOW (Synthetic Test Pattern Only)"
+  },
+  {
+    "filename": "WhatsApp_Video_sample.mp4",
+    "path": "D:\\Mineguard_project_2\\DepthTrack\\data\\user_uploads\\WhatsApp_Video_2026-11-01_at_9.02.36_PM_1794503123.mp4",
+    "file_size_bytes": 1767114,
+    "file_size_mb": 1.69,
+    "resolution": "576x1024",
+    "width": 576,
+    "height": 1024,
+    "fps": 30.0,
+    "frame_count": 583,
+    "duration_seconds": 19.43,
+    "imagery_type": "REAL_FOOTAGE",
+    "description": "Real mobile phone dashcam/road recording",
+    "yolo_detected_classes": [
+      "car"
+    ],
+    "sample_confidences": [
+      0.7,
+      0.81
+    ],
+    "visible_objects": "Car / Vehicle",
+    "lighting_visibility": "Daylight / Dusty",
+    "mineguard_suitability": "HIGH"
+  },
+  {
+    "filename": "mine_truck.mp4",
+    "path": "D:\\MINI_GUARD_PROJECT\\MineGuard-AI\\videos\\mine_truck.mp4",
+    "file_size_bytes": 10070298,
+    "file_size_mb": 9.6,
+    "resolution": "1280x720",
+    "width": 1280,
+    "height": 720,
+    "fps": 23.98,
+    "frame_count": 645,
+    "duration_seconds": 26.9,
+    "imagery_type": "REAL_FOOTAGE",
+    "description": "Real mining pit haul road footage with CAT-style haul truck",
+    "yolo_detected_classes": [
+      "truck"
+    ],
+    "sample_confidences": [
+      0.76,
+      0.75
+    ],
+    "visible_objects": "Haul truck / Heavy machinery",
+    "lighting_visibility": "Daylight / Dusty",
+    "mineguard_suitability": "HIGH"
+  },
+  {
+    "filename": "mixkit_yellow_quarry_truck.mp4",
+    "path": "D:\\MINI_GUARD_PROJECT\\MineGuard-AI\\videos\\mixkit-yellow-truck-driving-along-a-dusty-road-in-a-mining-45819-hd-ready.mp4",
+    "file_size_bytes": 5284932,
+    "file_size_mb": 5.04,
+    "resolution": "1280x720",
+    "width": 1280,
+    "height": 720,
+    "fps": 24.0,
+    "frame_count": 324,
+    "duration_seconds": 13.5,
+    "imagery_type": "REAL_FOOTAGE",
+    "description": "Real open pit mining footage with dusty quarry road and haul truck",
+    "yolo_detected_classes": [
+      "train"
+    ],
+    "sample_confidences": [
+      0.46
+    ],
+    "visible_objects": "Haul truck / Heavy machinery",
+    "lighting_visibility": "Daylight / Dusty",
+    "mineguard_suitability": "HIGH"
+  },
+  {
+    "filename": "clear_clean.mp4",
+    "path": "D:\\MINI_GUARD_PROJECT\\MineGuard-AI\\videos\\cvat_clean_videos\\clear_clean.mp4",
+    "file_size_bytes": 100551534,
+    "file_size_mb": 95.89,
+    "resolution": "1280x720",
+    "width": 1280,
+    "height": 720,
+    "fps": 23.98,
+    "frame_count": 645,
+    "duration_seconds": 26.9,
+    "imagery_type": "REAL_FOOTAGE",
+    "description": "Real mining road footage (base ground truth sequence)",
+    "yolo_detected_classes": [
+      "truck"
+    ],
+    "sample_confidences": [
+      0.79,
+      0.72
+    ],
+    "visible_objects": "Haul truck / Heavy machinery",
+    "lighting_visibility": "Clear daylight",
+    "mineguard_suitability": "HIGH"
+  },
+  {
+    "filename": "light_fog_clean.mp4",
+    "path": "D:\\MINI_GUARD_PROJECT\\MineGuard-AI\\videos\\cvat_clean_videos\\light_fog_clean.mp4",
+    "file_size_bytes": 55724419,
+    "file_size_mb": 53.14,
+    "resolution": "1280x720",
+    "width": 1280,
+    "height": 720,
+    "fps": 23.98,
+    "frame_count": 645,
+    "duration_seconds": 26.9,
+    "imagery_type": "REAL_FOOTAGE",
+    "description": "Photorealistic light fog on real mining footage (Koschmieder atmospheric scattering beta=0.35)",
+    "yolo_detected_classes": [
+      "truck",
+      "bus"
+    ],
+    "sample_confidences": [
+      0.79,
+      0.58,
+      0.36
+    ],
+    "visible_objects": "Haul truck / Heavy machinery",
+    "lighting_visibility": "Foggy",
+    "mineguard_suitability": "HIGH"
+  },
+  {
+    "filename": "medium_fog_clean.mp4",
+    "path": "D:\\MINI_GUARD_PROJECT\\MineGuard-AI\\videos\\cvat_clean_videos\\medium_fog_clean.mp4",
+    "file_size_bytes": 43693388,
+    "file_size_mb": 41.67,
+    "resolution": "1280x720",
+    "width": 1280,
+    "height": 720,
+    "fps": 23.98,
+    "frame_count": 645,
+    "duration_seconds": 26.9,
+    "imagery_type": "REAL_FOOTAGE",
+    "description": "Photorealistic medium fog on real mining footage (Koschmieder beta=0.75)",
+    "yolo_detected_classes": [
+      "truck",
+      "bus"
+    ],
+    "sample_confidences": [
+      0.76,
+      0.5,
+      0.45
+    ],
+    "visible_objects": "Haul truck / Heavy machinery",
+    "lighting_visibility": "Foggy",
+    "mineguard_suitability": "HIGH"
+  },
+  {
+    "filename": "dense_fog_clean.mp4",
+    "path": "D:\\MINI_GUARD_PROJECT\\MineGuard-AI\\videos\\cvat_clean_videos\\dense_fog_clean.mp4",
+    "file_size_bytes": 31375155,
+    "file_size_mb": 29.92,
+    "resolution": "1280x720",
+    "width": 1280,
+    "height": 720,
+    "fps": 23.98,
+    "frame_count": 645,
+    "duration_seconds": 26.9,
+    "imagery_type": "REAL_FOOTAGE",
+    "description": "Photorealistic dense fog on real mining footage (Koschmieder beta=1.30)",
+    "yolo_detected_classes": [
+      "truck",
+      "bus"
+    ],
+    "sample_confidences": [
+      0.71,
+      0.47,
+      0.61
+    ],
+    "visible_objects": "Haul truck / Heavy machinery",
+    "lighting_visibility": "Foggy",
+    "mineguard_suitability": "HIGH"
+  },
+  {
+    "filename": "night_vision_demo.mp4",
+    "path": "D:\\MINI_GUARD_PROJECT\\MineGuard-AI\\videos\\night_vision_output\\night_vision_pipeline_demo.mp4",
+    "file_size_bytes": 33846301,
+    "file_size_mb": 32.28,
+    "resolution": "1280x720",
+    "width": 1280,
+    "height": 720,
+    "fps": 23.98,
+    "frame_count": 300,
+    "duration_seconds": 12.51,
+    "imagery_type": "REAL_FOOTAGE",
+    "description": "Real night footage processed with CLAHE/illumination enhancement",
+    "yolo_detected_classes": [
+      "truck",
+      "bus"
+    ],
+    "sample_confidences": [
+      0.72,
+      0.62,
+      0.41
+    ],
+    "visible_objects": "None / Geometric Drawings",
+    "lighting_visibility": "Low-light / Night",
+    "mineguard_suitability": "HIGH"
+  }
+]
