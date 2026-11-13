@@ -192,7 +192,10 @@ class UnifiedMineGuardPerception:
         self.risk_analyzer.cleanup_old_tracks(active_track_ids)
 
         # 6. Road Clearance Assessment
-        if not objects_data:
+        if atmos["fog_condition"] == "DENSE_FOG" and illum["is_night"]:
+            road_status = "INSUFFICIENT VISIBILITY"
+            road_detail = "Severe atmospheric and lighting degradation: Halt operations."
+        elif not objects_data:
             road_status = "ROAD CLEAR"
             road_detail = f"Path is unobstructed. Visibility: {atmos['fog_condition']}."
         elif any(o["risk_tier"] == "CRITICAL" for o in objects_data):

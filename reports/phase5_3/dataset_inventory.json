@@ -1,0 +1,86 @@
+{
+  "synthetic_clear": {
+    "group": "Synthetic Testing",
+    "label": "Synthetic: Clear Ground Road",
+    "path": "D:\\Mineguard_project_2\\data\\scenarios\\synthetic\\mine_clear.mp4",
+    "condition": "CLEAR",
+    "has_gt": false
+  },
+  "synthetic_light_fog": {
+    "group": "Synthetic Testing",
+    "label": "Synthetic: Light Fog Simulation",
+    "path": "D:\\Mineguard_project_2\\data\\scenarios\\synthetic\\mine_light_fog.mp4",
+    "condition": "LIGHT_FOG",
+    "has_gt": false
+  },
+  "synthetic_dense_fog": {
+    "group": "Synthetic Testing",
+    "label": "Synthetic: Dense Fog Simulation",
+    "path": "D:\\Mineguard_project_2\\data\\scenarios\\synthetic\\mine_dense_fog.mp4",
+    "condition": "DENSE_FOG",
+    "has_gt": false
+  },
+  "synthetic_night": {
+    "group": "Synthetic Testing",
+    "label": "Synthetic: Night Pit Road",
+    "path": "D:\\Mineguard_project_2\\data\\scenarios\\synthetic\\mine_night.mp4",
+    "condition": "NIGHT",
+    "has_gt": false
+  },
+  "synthetic_sample": {
+    "group": "Synthetic Testing",
+    "label": "Synthetic: Sample Pit Test Pattern",
+    "path": "D:\\Mineguard_project_2\\data\\scenarios\\synthetic\\sample_test.mp4",
+    "condition": "CLEAR",
+    "has_gt": false
+  },
+  "real_mine_truck": {
+    "group": "Real Mining Testing",
+    "label": "Real Mining: Main Haul Truck Road",
+    "path": "D:\\Mineguard_project_2\\data\\scenarios\\real_mining\\clear\\mine_truck.mp4",
+    "condition": "CLEAR",
+    "has_gt": true
+  },
+  "real_clear_clean": {
+    "group": "Real Mining Testing",
+    "label": "Real Mining: Clear Haul Road (GT Baseline)",
+    "path": "D:\\Mineguard_project_2\\data\\scenarios\\real_mining\\clear\\clear_clean.mp4",
+    "condition": "CLEAR",
+    "has_gt": true
+  },
+  "real_light_fog": {
+    "group": "Real Mining Testing",
+    "label": "Real Mining: Light Fog Road (Koschmieder beta=0.35)",
+    "path": "D:\\Mineguard_project_2\\data\\scenarios\\real_mining\\light_fog\\light_fog_clean.mp4",
+    "condition": "LIGHT_FOG",
+    "has_gt": true
+  },
+  "real_medium_fog": {
+    "group": "Real Mining Testing",
+    "label": "Real Mining: Medium Fog Road (Koschmieder beta=0.75)",
+    "path": "D:\\Mineguard_project_2\\data\\scenarios\\real_mining\\medium_fog\\medium_fog_clean.mp4",
+    "condition": "MEDIUM_FOG",
+    "has_gt": true
+  },
+  "real_dense_fog": {
+    "group": "Real Mining Testing",
+    "label": "Real Mining: Dense Fog Road (Koschmieder beta=1.30)",
+    "path": "D:\\Mineguard_project_2\\data\\scenarios\\real_mining\\dense_fog\\dense_fog_clean.mp4",
+    "condition": "DENSE_FOG",
+    "has_gt": true
+  },
+  "real_quarry": {
+    "group": "Real Mining Testing",
+    "label": "Real Mining: Dusty Quarry Haul Truck",
+    "path": "D:\\Mineguard_project_2\\data\\scenarios\\real_mining\\quarry\\mixkit_quarry_truck.mp4",
+    "condition": "DUSTY",
+    "has_gt": false
+  },
+  "real_night": {
+    "group": "Real Mining Testing",
+    "label": "Real Mining: Night Haul Road (Headlights Active)",
+    "path": "D:\\Mineguard_project_2\\data\\scenarios\\real_mining\\night\\night_vision_demo.mp4",
+    "condition": "NIGHT",
+    "has_gt": false
+  }
+}

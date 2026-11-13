@@ -1,0 +1,67 @@
+{
+  "mine_clear": {
+    "scenario": "mine_clear",
+    "frames_collected": 35,
+    "duration_sec": 3.29,
+    "actual_worker_fps": 10.63,
+    "mean_latency_ms": 142.67,
+    "median_latency_ms": 97.1,
+    "p95_latency_ms": 338.44,
+    "gpu_vram_mb": 152.79,
+    "road_status": "ROAD CLEAR",
+    "fog_condition": "CLEAR",
+    "active_vehicles": 0
+  },
+  "mine_light_fog": {
+    "scenario": "mine_light_fog",
+    "frames_collected": 35,
+    "duration_sec": 2.61,
+    "actual_worker_fps": 13.41,
+    "mean_latency_ms": 66.3,
+    "median_latency_ms": 69.1,
+    "p95_latency_ms": 76.28,
+    "gpu_vram_mb": 152.79,
+    "road_status": "ROAD CLEAR",
+    "fog_condition": "LIGHT_FOG",
+    "active_vehicles": 0
+  },
+  "mine_dense_fog": {
+    "scenario": "mine_dense_fog",
+    "frames_collected": 35,
+    "duration_sec": 2.58,
+    "actual_worker_fps": 13.55,
+    "mean_latency_ms": 54.58,
+    "median_latency_ms": 55.1,
+    "p95_latency_ms": 55.7,
+    "gpu_vram_mb": 152.79,
+    "road_status": "ROAD CLEAR",
+    "fog_condition": "DENSE_FOG",
+    "active_vehicles": 0
+  },
+  "mine_night": {
+    "scenario": "mine_night",
+    "frames_collected": 35,
+    "duration_sec": 2.56,
+    "actual_worker_fps": 13.68,
+    "mean_latency_ms": 53.71,
+    "median_latency_ms": 54.1,
+    "p95_latency_ms": 54.8,
+    "gpu_vram_mb": 152.79,
+    "road_status": "ROAD CLEAR",
+    "fog_condition": "CLEAR",
+    "active_vehicles": 0
+  },
+  "fallback_baseline": {
+    "scenario": "fallback_baseline",
+    "frames_collected": 25,
+    "duration_sec": 1.01,
+    "actual_worker_fps": 24.79,
+    "mean_latency_ms": 30.96,
+    "median_latency_ms": 20.01,
+    "p95_latency_ms": 29.05,
+    "gpu_vram_mb": 55.86,
+    "road_status": "ROAD CLEAR",
+    "fog_condition": "CLEAR",
+    "active_vehicles": 0
+  }
+}
