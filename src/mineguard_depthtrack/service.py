@@ -3,7 +3,6 @@
 Decouples dashboard HTTP handlers and MJPEG streaming from the underlying
 perception engines (UnifiedMineGuardPerception and fallback MineGuardIntegratedSystem).
 """
-
 import logging
 import queue
 import sys

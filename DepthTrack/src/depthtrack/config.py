@@ -31,7 +31,7 @@ class ModelConfig:
 
     detector_weights: str = "yolov8n.pt"
     depth_model: str = "depth-anything/Depth-Anything-V2-Small-hf"
-    confidence: float = 0.35
+    confidence: float = 0.22
     device: str = "cpu"  # "cpu" or "cuda"
     track_history: int = 30
     vehicle_classes: dict[int, str] = field(
