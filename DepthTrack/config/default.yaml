@@ -5,7 +5,7 @@
 model:
   detector_weights: yolov8n.pt          # YOLO weights (resolved against --assets-dir)
   depth_model: depth-anything/Depth-Anything-V2-Small-hf
-  confidence: 0.35                       # detection confidence threshold (0, 1]
+  confidence: 0.22                       # detection confidence threshold (0, 1]
   device: cpu                            # cpu | cuda
   track_history: 30                      # max trajectory points retained per track
   vehicle_classes:                       # COCO id -> label
