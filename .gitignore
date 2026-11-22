@@ -39,4 +39,11 @@ backups/
 # Heavy video scenarios (kept locally, not pushed to git)
 data/scenarios/real_mining/
 
+# Runtime incident, fleet, and road hazard media & databases
+data/fleet/
+data/incidents/
+data/road_hazards/
+*.db
+
+
 

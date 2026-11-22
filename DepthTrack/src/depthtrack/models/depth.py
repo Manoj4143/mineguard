@@ -28,15 +28,21 @@ class DepthEstimator:
 
     def load(self) -> None:
         from transformers import pipeline as hf_pipeline
+        import torch
 
-        logger.info("Loading depth model: %s", self.cfg.depth_model)
-        hf_device = 0 if self.device == "cuda" else -1
-        self._pipe = hf_pipeline(
-            task="depth-estimation",
-            model=self.cfg.depth_model,
-            device=hf_device,
-        )
-        logger.info("Depth model ready")
+        logger.info("Loading depth model: %s on %s", self.cfg.depth_model, self.device)
+        is_cuda = self.device == "cuda" or (isinstance(self.device, str) and "cuda" in self.device)
+        hf_device = 0 if is_cuda else -1
+        pipe_kwargs = {
+            "task": "depth-estimation",
+            "model": self.cfg.depth_model,
+            "device": hf_device,
+        }
+        if is_cuda and torch.cuda.is_available():
+            pipe_kwargs["dtype"] = torch.float16
+
+        self._pipe = hf_pipeline(**pipe_kwargs)
+        logger.info("Depth model ready on GPU: %s", is_cuda)
 
     def estimate(self, bgr: np.ndarray) -> np.ndarray:
         """Return a normalised depth map (``[0, 1]``) for a BGR frame."""

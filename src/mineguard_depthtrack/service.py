@@ -33,6 +33,12 @@ try:
 except ImportError:
     MineGuardIntegratedSystem = None
 
+# Integrated Feature Modules (Fleet, Road Intelligence, Incident Recorder)
+from mineguard_depthtrack.fleet_manager import FleetManager
+from mineguard_depthtrack.fleet_simulator import FleetSimulator
+from mineguard_depthtrack.road_intelligence import RoadConditionIntelligence
+from mineguard_depthtrack.incident_recorder import AutomaticIncidentRecorder, IncidentEventType
+
 
 class PerceptionAdapter:
     """Manages perception engine lifecycles, execution, and output normalization."""
@@ -48,6 +54,14 @@ class PerceptionAdapter:
         self.is_fallback_active = False
         self.initialization_error = None
         self._init_lock = threading.Lock()
+
+        # Modular Advanced Safety Platform Instances
+        self.fleet_manager = FleetManager()
+        self.fleet_simulator = FleetSimulator(self.fleet_manager)
+        self.fleet_simulator.start()
+
+        self.road_intelligence = RoadConditionIntelligence()
+        self.incident_recorder = AutomaticIncidentRecorder()
 
         self._initialize_engine(preferred_engine)
 
@@ -260,10 +274,12 @@ class BackgroundVideoWorker:
     invokes perception inference, and stores the latest JPEG frame and telemetry.
     """
 
-    def __init__(self, perception_adapter: PerceptionAdapter, video_source: str, jpeg_quality: int = 80):
+    def __init__(self, perception_adapter: PerceptionAdapter, video_source: str, jpeg_quality: int = 70, target_fps: float = 24.0):
         self.adapter = perception_adapter
         self.video_source = str(video_source)
         self.jpeg_quality = jpeg_quality
+        self.target_fps = target_fps
+        self._target_interval = 1.0 / target_fps if target_fps > 0 else 0.0416
 
         self._lock = threading.Lock()
         self._running = False
@@ -318,6 +334,8 @@ class BackgroundVideoWorker:
         self._frame_id = 0
 
         while self._running:
+            t_loop_start = time.perf_counter()
+
             # Check source switch
             with self._lock:
                 if self._source_switch_requested:
@@ -376,6 +394,45 @@ class BackgroundVideoWorker:
                 telemetry["dropped_frames"] = self._dropped_frames
                 telemetry["worker_frame_id"] = self._frame_id
 
+                if getattr(self.adapter, "incident_recorder", None) is not None:
+                    self.adapter.incident_recorder.add_frame(display_frame)
+
+                # Feed road condition intelligence every 5 frames for efficiency
+                if getattr(self.adapter, "road_intelligence", None) is not None and self._frame_id % 5 == 0:
+                    vehicle_boxes = [v["bbox"] for v in telemetry.get("vehicles", [])]
+                    self.adapter.road_intelligence.analyze_road_frame(
+                        frame,
+                        source_vehicle_id="MINE-TRUCK-001",
+                        existing_vehicle_boxes=vehicle_boxes
+                    )
+
+                # Automated Incident Triggers: trigger only on genuinely high or critical risks
+                if getattr(self.adapter, "incident_recorder", None) is not None:
+                    highest_risk = telemetry.get("highest_risk", "SAFE")
+                    road_status = telemetry.get("road_status", "ROAD CLEAR")
+                    min_dist = min([v["distance_m"] for v in telemetry.get("vehicles", []) if v.get("distance_m") is not None], default=999.0)
+                    min_ttc = min([v["ttc_s"] for v in telemetry.get("vehicles", []) if v.get("ttc_s") is not None], default=999.0)
+
+                    if highest_risk == "CRITICAL" and (min_dist <= 25.0 or min_ttc <= 3.0):
+                        self.adapter.incident_recorder.trigger_incident(
+                            event_type=IncidentEventType.CRITICAL_COLLISION_RISK,
+                            severity="CRITICAL",
+                            vehicle_id="MINE-TRUCK-001",
+                            telemetry=telemetry,
+                            description=f"Critical collision hazard: {telemetry.get('road_status_detail')}",
+                            ttc=min_ttc if min_ttc < 999.0 else None,
+                            distance_m=min_dist if min_dist < 999.0 else None
+                        )
+                    elif ("HAZARD" in road_status or "ROAD BLOCKED" in road_status) and min_dist <= 30.0:
+                        self.adapter.incident_recorder.trigger_incident(
+                            event_type=IncidentEventType.ROAD_HAZARD,
+                            severity="HIGH",
+                            vehicle_id="MINE-TRUCK-001",
+                            telemetry=telemetry,
+                            description=f"Road hazard obstruction: {telemetry.get('road_status_detail')}",
+                            distance_m=min_dist if min_dist < 999.0 else None
+                        )
+
                 with self._lock:
                     self._latest_jpeg = jpeg_bytes
                     self._latest_telemetry = telemetry
@@ -385,7 +442,10 @@ class BackgroundVideoWorker:
                 logger.exception("Error in worker frame processing: %s", exc)
                 time.sleep(0.02)
 
-            time.sleep(0.005)
+            # Balanced pacing control: sleep remainder of frame budget to keep CPU/GPU cool
+            t_elapsed = time.perf_counter() - t_loop_start
+            sleep_time = max(0.005, self._target_interval - t_elapsed)
+            time.sleep(sleep_time)
 
         if self._cap is not None:
             self._cap.release()

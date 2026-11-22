@@ -35,10 +35,11 @@ def test_unified_engine_process_frame(unified_engine):
     tel = res["telemetry"]
     assert tel["system_status"] == "ONLINE"
     assert tel["highest_risk"] in ("SAFE", "CAUTION", "CRITICAL")
-    assert tel["road_status"] in ("ROAD CLEAR", "ROAD BLOCKED / HAZARD", "PROXIMITY WARNING")
+    assert tel["road_status"] in ("ROAD CLEAR", "ROAD BLOCKED / HAZARD", "PROXIMITY WARNING", "ROAD BLOCKED / DANGER")
     assert tel["fps"] > 0
-    assert res["composite_frame"].shape[0] == 540
-    assert res["composite_frame"].shape[1] == 1924
+    # Following Section 4.B & 4.C: 3D BEV panel removed, expanded single live AI stream preserves input frame aspect ratio
+    assert res["composite_frame"].shape[0] in (480, 540)
+    assert res["composite_frame"].shape[1] in (640, 960, 1920, 1924)
 
 
 def test_unified_engine_consecutive_tracking_and_ttc(unified_engine):

@@ -65,6 +65,10 @@ class UnifiedMineGuardPerception:
         self.system_status = "ONLINE"
         self.frame_count = 0
 
+        # High-performance depth estimation cadence cache
+        self._cached_depth_norm: Optional[np.ndarray] = None
+        self._depth_step_stride = 3  # Estimate depth every 3rd frame for 3x speedup while ByteTrack tracks continuously
+
     def assess_atmospheric_visibility(self, frame: np.ndarray) -> Dict[str, Any]:
         """Estimate contrast and dark channel mean to classify fog intensity."""
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -89,16 +93,59 @@ class UnifiedMineGuardPerception:
         }
 
     def _detect_corridor_hazards(self, work_frame: np.ndarray, existing_boxes: List[List[int]]) -> List[Dict[str, Any]]:
-        """Detects faint / low-contrast obstacles or approaching silhouettes in the driving path."""
+        """Detects faint / low-contrast obstacles, approaching lights/headlights, or silhouettes in the driving path."""
         h, w = work_frame.shape[:2]
         # Central driving lane corridor
-        cy1, cy2 = int(h * 0.58), int(h * 0.76)
-        cx1, cx2 = int(w * 0.28), int(w * 0.58)
+        cy1, cy2 = int(h * 0.54), int(h * 0.78)
+        cx1, cx2 = int(w * 0.28), int(w * 0.62)
 
         gray = cv2.cvtColor(work_frame, cv2.COLOR_BGR2GRAY)
         roi = gray[cy1:cy2, cx1:cx2]
+        hazards = []
 
-        # Sobel gradient analysis to detect anomalous boundaries in fog
+        # 1. Oncoming Headlights / Approaching Bright Light Detection in Lane
+        # In foggy, dusty, or dark conditions, approaching vehicles emit distinct bright luminous spots (headlights)
+        roi_mean, roi_std = np.mean(roi), np.std(roi)
+        light_thresh_val = max(195, int(roi_mean + 2.8 * roi_std))
+        _, light_mask = cv2.threshold(roi, min(235, light_thresh_val), 255, cv2.THRESH_BINARY)
+        l_kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+        light_cleaned = cv2.morphologyEx(light_mask, cv2.MORPH_CLOSE, l_kernel)
+        light_contours, _ = cv2.findContours(light_cleaned, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+        light_blobs = []
+        for lcnt in light_contours:
+            larea = cv2.contourArea(lcnt)
+            if 30 <= larea <= 1800:
+                lx, ly, lw, lh = cv2.boundingRect(lcnt)
+                aspect = lw / float(lh)
+                if 0.4 <= aspect <= 3.5:
+                    light_blobs.append((lx, ly, lw, lh, larea))
+
+        # Check if bright blobs represent headlights or an oncoming vehicle cluster
+        if light_blobs:
+            min_lx = min(b[0] for b in light_blobs)
+            min_ly = min(b[1] for b in light_blobs)
+            max_rx = max(b[0] + b[2] for b in light_blobs)
+            max_ry = max(b[1] + b[3] for b in light_blobs)
+            bw = max_rx - min_lx
+            bh = max_ry - min_ly
+
+            bx1, by1 = cx1 + min_lx, cy1 + min_ly
+            bx2, by2 = bx1 + bw, by1 + bh
+
+            # Check overlap with existing YOLO vehicle boxes
+            overlaps = any(
+                max(bx1, eb[0]) < min(bx2, eb[2]) and max(by1, eb[1]) < min(by2, eb[3])
+                for eb in existing_boxes
+            )
+            if not overlaps and bw >= 14 and bh >= 10:
+                hazards.append({
+                    "bbox": [bx1, by1, bx2, by2],
+                    "area": bw * bh,
+                    "is_light": True,
+                })
+
+        # 2. Sobel gradient analysis to detect anomalous boundaries in fog/dust
         gx = cv2.Sobel(roi, cv2.CV_32F, 1, 0, ksize=3)
         gy = cv2.Sobel(roi, cv2.CV_32F, 0, 1, ksize=3)
         mag = cv2.magnitude(gx, gy)
@@ -110,7 +157,6 @@ class UnifiedMineGuardPerception:
         clustered = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
 
         contours, _ = cv2.findContours(clustered, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        hazards = []
 
         for cnt in contours:
             area = cv2.contourArea(cnt)
@@ -123,12 +169,13 @@ class UnifiedMineGuardPerception:
 
                     overlaps = any(
                         max(bx1, eb[0]) < min(bx2, eb[2]) and max(by1, eb[1]) < min(by2, eb[3])
-                        for eb in existing_boxes
+                        for eb in (existing_boxes + [h["bbox"] for h in hazards])
                     )
                     if not overlaps:
                         hazards.append({
                             "bbox": [bx1, by1, bx2, by2],
                             "area": area,
+                            "is_light": False,
                         })
         return hazards
 
@@ -166,12 +213,15 @@ class UnifiedMineGuardPerception:
         raw_detections = self.detector.detect(detector_input)
         tracked = self.tracker.update(raw_detections)
 
-        # 4. Depth Estimation on Natural Original Frame (Preserves natural depth perspective)
-        depth_in = cv2.resize(
-            work_frame, (self.cfg.video.depth_input_width, self.cfg.video.depth_input_height)
-        )
-        depth_norm = self.depth_estimator.estimate(depth_in)
-        depth_norm = cv2.resize(depth_norm, (work_w, work_h))
+        # 4. Depth Estimation on Natural Original Frame with intelligent cadence
+        if self._cached_depth_norm is None or (self.frame_count % self._depth_step_stride == 0):
+            depth_in = cv2.resize(
+                work_frame, (self.cfg.video.depth_input_width, self.cfg.video.depth_input_height)
+            )
+            depth_raw = self.depth_estimator.estimate(depth_in)
+            self._cached_depth_norm = cv2.resize(depth_raw, (work_w, work_h))
+        
+        depth_norm = self._cached_depth_norm
 
         # 5. Safety Layer: Distance, Velocity, TTC & Risk Classification
         objects_data = []
@@ -278,35 +328,47 @@ class UnifiedMineGuardPerception:
         # 5b. Driving Corridor Anomaly & Unusual Obstacle Detection
         # When standard YOLO does not identify faint/distant vehicles in the road corridor,
         # detect high-frequency silhouettes/anomalies in the driving path as "UNUSUAL OBJECT"
-        # and elevate collision warning.
+        # or oncoming headlights / light approaching as "DANGER: HEAD-ON LIGHT / VEHICLE APPROACHING".
         existing_boxes = [o["bbox"] for o in objects_data]
         unusual_hazards = self._detect_corridor_hazards(work_frame, existing_boxes)
         for uh in unusual_hazards:
             ubox = uh["bbox"]
+            is_light = uh.get("is_light", False)
             udist_m = estimate_distance(depth_norm, ubox, work_w, work_h, self.cfg.distance, class_id=2)
-            # Assign risk level based on proximity
-            urisk = "CRITICAL" if udist_m <= 20.0 else ("CAUTION" if udist_m <= 45.0 else "SAFE")
-            ucolor = (0, 0, 255) if urisk == "CRITICAL" else ((0, 215, 255) if urisk == "CAUTION" else (0, 255, 0))
+
+            if is_light:
+                # Approaching light / oncoming headlights in path indicates imminent collision danger
+                urisk = "CRITICAL"
+                ucolor = (0, 0, 255)
+                cname = "APPROACHING LIGHT / HEADLIGHTS"
+                h_state = "DANGER: ONCOMING LIGHT IN LANE"
+            else:
+                # Assign risk level based on proximity
+                urisk = "CRITICAL" if udist_m <= 20.0 else ("CAUTION" if udist_m <= 45.0 else "SAFE")
+                ucolor = (0, 0, 255) if urisk == "CRITICAL" else ((0, 215, 255) if urisk == "CAUTION" else (0, 255, 0))
+                cname = "UNUSUAL OBJECT / OBSTACLE"
+                h_state = "ROAD CORRIDOR OBSTACLE"
 
             if risk_priority[urisk] > risk_priority[highest_risk]:
                 highest_risk = urisk
 
             objects_data.append({
-                "track_id": 99,
-                "class_id": 99,
-                "class_name": "UNUSUAL OBJECT / OBSTACLE",
-                "confidence": 0.65,
+                "track_id": 99 if not is_light else 98,
+                "class_id": 99 if not is_light else 98,
+                "class_name": cname,
+                "confidence": 0.75 if is_light else 0.65,
                 "bbox": ubox,
                 "relative_depth": round(float(np.median(depth_norm[ubox[1]:ubox[3], ubox[0]:ubox[2]])), 3) if ubox[3] > ubox[1] and ubox[2] > ubox[0] else 0.5,
                 "distance_m": udist_m,
                 "closing_speed_kmh": 0.0,
                 "ttc_seconds": None,
                 "risk_tier": urisk,
+                "hazard_state": h_state,
                 "color_bgr": ucolor,
             })
 
         # 6. Road Clearance Assessment
-        head_on_threats = [o for o in objects_data if o.get("hazard_state") == "DANGER: HEAD-ON APPROACH"]
+        head_on_threats = [o for o in objects_data if o.get("hazard_state") in ("DANGER: HEAD-ON APPROACH", "DANGER: ONCOMING LIGHT IN LANE")]
         stopped_threats = [o for o in objects_data if o.get("hazard_state") == "VEHICLE STOPPED IN LANE"]
         adjacent_threats = [o for o in objects_data if o.get("hazard_state") == "WARNING: ADJACENT APPROACH"]
 
@@ -314,9 +376,12 @@ class UnifiedMineGuardPerception:
             road_status = "INSUFFICIENT VISIBILITY"
             road_detail = "Severe atmospheric and lighting degradation: Halt operations."
         elif head_on_threats:
-            # Rule 3
+            # Rule 3: Approaching in same lane or head-on light
             road_status = "ROAD BLOCKED / DANGER"
-            road_detail = f"DANGER: Vehicle approaching in SAME LANE at {head_on_threats[0]['distance_m']}m! Immediate stop required."
+            if head_on_threats[0].get("hazard_state") == "DANGER: ONCOMING LIGHT IN LANE":
+                road_detail = f"DANGER: Oncoming headlights / approaching light detected in your lane at {head_on_threats[0]['distance_m']}m! Stop immediately."
+            else:
+                road_detail = f"DANGER: Vehicle approaching in SAME LANE at {head_on_threats[0]['distance_m']}m! Immediate stop required."
         elif stopped_threats:
             # Rule 4
             road_status = "ROAD BLOCKED / HAZARD"
@@ -344,10 +409,12 @@ class UnifiedMineGuardPerception:
 
         t_elapsed = time.perf_counter() - t_start
         self.latencies.append(t_elapsed * 1000)
-        mean_lat = float(np.mean(self.latencies))
+        # Use instantaneous exponential/short rolling average (last 10 frames) so warmup spike doesn't drag down FPS
+        recent_latencies = list(self.latencies)[-10:]
+        mean_lat = float(np.mean(recent_latencies))
         fps = 1000.0 / max(mean_lat, 1e-6)
 
-        # 7. Render Visualization Composite (Left: annotated, Right Top: Depth, Right Bottom: BEV)
+        # 7. Render Visualization (Single Expanded Live AI Vision Feed, No 3D BEV Panel)
         annotated_frame = work_frame.copy()
         for o in objects_data:
             x1, y1, x2, y2 = o["bbox"]
@@ -357,10 +424,10 @@ class UnifiedMineGuardPerception:
             lbl = f"ID:{o['track_id']} {o['class_name']} {o['distance_m']}m {ttc_str}{h_state}"
             cv2.putText(annotated_frame, lbl, (x1, max(20, y1 - 8)), cv2.FONT_HERSHEY_SIMPLEX, 0.42, o["color_bgr"], 1)
 
-        # Assemble unified composite frame
-        right_panel = self.renderer.draw_right_panel(depth_norm, tracked, work_w, work_h)
-        composite = self.renderer.compose(annotated_frame, right_panel)
-        self.renderer.add_hud(composite, fps, self.frame_count, self.frame_count, self.device)
+        # Single expanded panel HUD overlay
+        hud_text = f"FPS: {fps:.1f} | Frame: {self.frame_count} | Mode: {pipeline_mode} | Dev: {self.device}"
+        cv2.putText(annotated_frame, hud_text, (10, work_h - 12), cv2.FONT_HERSHEY_SIMPLEX, 0.40, (0, 255, 0), 1)
+        composite = annotated_frame
 
         telemetry = {
             "system_status": self.system_status,

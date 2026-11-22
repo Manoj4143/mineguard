@@ -3,6 +3,11 @@
 Integrated with UnifiedMineGuardPerception perception engine,
 ThreadingHTTPServer concurrency, validated streaming uploads,
 and fallback engine support.
+
+Features:
+1. Mine Fleet Coordination (Feature 3)
+2. Mine Road Condition Intelligence (Feature 2)
+3. Automatic Incident Recorder (Feature 1)
 """
 
 from collections import deque
@@ -32,6 +37,7 @@ for p in [str(SRC_DIR), str(REPO_ROOT / "src"), str(DEPTHTRACK_SRC), str(MINEGUA
 
 from mineguard_depthtrack.service import PerceptionAdapter, BackgroundVideoWorker
 from mineguard_depthtrack.dataset import MineGuardDatasetManager
+from mineguard_depthtrack.fleet_models import TelemetryMessage
 
 logger = logging.getLogger("MineGuardDashboard")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -92,9 +98,10 @@ HTML_DASHBOARD = """<!DOCTYPE html>
             --safe-green: #3fb950;
             --caution-yellow: #d29922;
             --hazard-red: #f85149;
+            --purple: #bc8cff;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: var(--bg-base); color: var(--text-main); padding: 18px; }
+        body { background-color: var(--bg-base); color: var(--text-main); padding: 18px; line-height: 1.4; }
         header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 14px; margin-bottom: 16px; }
         .logo-group { display: flex; align-items: center; gap: 12px; }
         .logo-badge { background: linear-gradient(135deg, #1f6feb, #238636); padding: 6px 12px; border-radius: 6px; font-weight: bold; font-size: 15px; }
@@ -121,20 +128,20 @@ HTML_DASHBOARD = """<!DOCTYPE html>
 
         /* Controls bar */
         .controls-bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 16px; background: var(--bg-card); padding: 12px 16px; border-radius: 8px; border: 1px solid var(--border); }
-        select, button { background: #161b22; color: #fff; border: 1px solid var(--border); padding: 8px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; }
+        select, button, input { background: #161b22; color: #fff; border: 1px solid var(--border); padding: 8px 14px; border-radius: 6px; font-size: 13px; cursor: pointer; }
         button:hover { background: #1f242c; border-color: var(--accent-blue); }
         .upload-btn { background: #238636; border-color: #2ea043; font-weight: bold; }
         .engine-badge { font-weight: bold; padding: 4px 10px; border-radius: 4px; font-size: 12px; border: 1px solid var(--border); }
         .engine-badge-unified { background: rgba(31, 111, 235, 0.2); color: var(--accent-blue); border-color: var(--accent-blue); }
         .engine-badge-fallback { background: rgba(210, 153, 34, 0.2); color: var(--caution-yellow); border-color: var(--caution-yellow); }
 
-        /* Grid */
-        .dashboard-grid { display: grid; grid-template-columns: 2.2fr 1fr; gap: 18px; }
+        /* Primary Live Grid */
+        .dashboard-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 18px; margin-bottom: 24px; }
         .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
-        .card-title { font-size: 14px; color: var(--text-dim); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 12px; }
+        .card-title { font-size: 14px; color: var(--text-dim); text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; }
 
-        /* Video Container */
-        .video-container { position: relative; border-radius: 8px; overflow: hidden; background: #000; border: 1px solid var(--border); min-height: 420px; display: flex; align-items: center; justify-content: center; }
+        /* Expanded Live Video Container */
+        .video-container { position: relative; border-radius: 8px; overflow: hidden; background: #000; border: 1px solid var(--border); min-height: 480px; width: 100%; display: flex; align-items: center; justify-content: center; }
         .video-container img { width: 100%; height: auto; display: block; object-fit: contain; }
 
         /* Metrics */
@@ -150,6 +157,87 @@ HTML_DASHBOARD = """<!DOCTYPE html>
         .badge-SAFE { background: rgba(63, 185, 80, 0.2); color: var(--safe-green); }
         .badge-CAUTION { background: rgba(210, 153, 34, 0.25); color: var(--caution-yellow); }
         .badge-CRITICAL { background: rgba(248, 81, 73, 0.3); color: var(--hazard-red); }
+        .badge-SIM { background: rgba(188, 140, 255, 0.2); color: var(--purple); border: 1px solid rgba(188, 140, 255, 0.4); }
+
+        /* Full-Width Stacked Section Layout */
+        .feature-section {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 24px;
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            color: var(--accent-blue);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-subtitle {
+            font-size: 12px;
+            color: var(--text-dim);
+            font-weight: normal;
+        }
+
+        .summary-card-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        /* Evidence Preview Frame */
+        .evidence-preview-container {
+            display: flex;
+            gap: 18px;
+            align-items: flex-start;
+        }
+        .evidence-img-box {
+            width: 320px;
+            min-height: 180px;
+            background: #000;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        .evidence-img-box img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+
+        /* Video Modal Player */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 20px;
+            max-width: 800px;
+            width: 90%;
+        }
     </style>
 </head>
 <body>
@@ -207,16 +295,18 @@ HTML_DASHBOARD = """<!DOCTYPE html>
         <span id="banner-fps" style="font-size: 14px; opacity: 0.95;">FPS: --</span>
     </div>
 
+    <!-- EXPANDED LIVE AI VISION STREAM & TELEMETRY GRID -->
     <div class="dashboard-grid">
-        <!-- Live AI Feed -->
         <div class="card">
-            <div class="card-title">Live AI Vision & Safety Stream</div>
+            <div class="card-title">
+                <span>Live AI Vision & Safety Stream (Expanded Field of View)</span>
+                <span style="font-size: 11px; color: var(--safe-green); font-weight: normal;">MONOCULAR DEPTH FUSED</span>
+            </div>
             <div class="video-container">
                 <img id="stream-img" src="/stream.mjpg" alt="MineGuard Live AI Feed">
             </div>
         </div>
 
-        <!-- Telemetry & Road Status -->
         <div class="card">
             <div class="card-title">Atmospheric & Road Intelligence</div>
             <div class="stats-grid">
@@ -264,7 +354,145 @@ HTML_DASHBOARD = """<!DOCTYPE html>
         </div>
     </div>
 
+    <!-- FEATURE 2: MINE ROAD CONDITION INTELLIGENCE -->
+    <section class="feature-section" id="section-road-intelligence">
+        <div class="section-header">
+            <div>
+                <div class="section-title">
+                    <span>MINE ROAD CONDITION INTELLIGENCE</span>
+                    <span class="tier-badge" id="road-model-badge" style="background: rgba(88,166,255,0.2); color: var(--accent-blue);">CORRIDOR TEXTURE ANALYZER</span>
+                </div>
+                <div class="section-subtitle">Traversable Corridor Segmentation, Potholes, Rocks, Loose Debris, Water & Road Edge Analysis</div>
+            </div>
+            <div id="road-model-status-text" style="font-size: 12px; color: var(--text-dim);">Status: Honest readiness reporting</div>
+        </div>
+
+        <div class="summary-card-row">
+            <div class="stat-box">
+                <div class="stat-label">Active Hazards</div>
+                <div class="stat-val" id="road-active-hazards" style="color: var(--caution-yellow);">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Critical / Blockages</div>
+                <div class="stat-val" id="road-critical-hazards" style="color: var(--hazard-red);">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Resolved Hazards</div>
+                <div class="stat-val" id="road-resolved-hazards" style="color: var(--safe-green);">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Total Logged</div>
+                <div class="stat-val" id="road-total-hazards">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Corridor Status</div>
+                <div class="stat-val" id="road-corridor-status" style="font-size: 15px; color: var(--safe-green);">CLEAR</div>
+            </div>
+        </div>
+
+        <div class="evidence-preview-container">
+            <div style="flex: 2;">
+                <div class="card-title">Tracked Road Surface Hazards & Corridors</div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Hazard ID</th>
+                            <th>Category</th>
+                            <th>Severity</th>
+                            <th>Confidence</th>
+                            <th>Status</th>
+                            <th>Reported By</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="road-hazards-tbody">
+                        <tr><td colspan="7" style="text-align: center; color: var(--safe-green);">Road traversable corridor is clear of surface hazards</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="flex: 1;">
+                <div class="card-title">Evidence Snapshot Viewer</div>
+                <div class="evidence-img-box">
+                    <img id="evidence-preview-img" src="" alt="Select hazard to view evidence" style="display: none;">
+                    <span id="evidence-placeholder" style="font-size: 12px; color: var(--text-dim);">No hazard selected</span>
+                </div>
+                <div id="evidence-caption" style="font-size: 12px; color: var(--text-dim); margin-top: 6px;"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURE 1: AUTOMATIC INCIDENT RECORDER -->
+    <section class="feature-section" id="section-incident-recorder">
+        <div class="section-header">
+            <div>
+                <div class="section-title">
+                    <span>AUTOMATIC INCIDENT RECORDER</span>
+                    <span class="tier-badge badge-SAFE" style="font-size: 11px;">EVIDENCE SNAPSHOT VAULT ONLINE</span>
+                </div>
+                <div class="section-subtitle">Automated Triggering on Collision Risks, Hard Near-Misses, Instantaneous Evidence Snapshots & Audit Vault</div>
+            </div>
+            <div style="font-size: 12px; color: var(--text-dim);" id="recorder-disk-status">Storage: data/incidents</div>
+        </div>
+
+        <div class="summary-card-row">
+            <div class="stat-box">
+                <div class="stat-label">Total Incidents</div>
+                <div class="stat-val" id="inc-total-count">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Critical Collision Risks</div>
+                <div class="stat-val" id="inc-critical-count" style="color: var(--hazard-red);">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Near-Miss Events</div>
+                <div class="stat-val" id="inc-near-miss-count" style="color: var(--caution-yellow);">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Road Obstructions</div>
+                <div class="stat-val" id="inc-hazard-count">0</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-label">Today's Incidents</div>
+                <div class="stat-val" id="inc-today-count" style="color: var(--accent-blue);">0</div>
+            </div>
+        </div>
+
+        <div class="card-title">Recorded Incident Event Log & Evidence Snapshots</div>
+        <table>
+            <thead>
+                <tr>
+                    <th>Incident ID</th>
+                    <th>Event Type</th>
+                    <th>Severity</th>
+                    <th>Time</th>
+                    <th>Vehicle</th>
+                    <th>TTC / Dist</th>
+                    <th>Description</th>
+                    <th>Incident Snapshot</th>
+                </tr>
+            </thead>
+            <tbody id="incidents-tbody">
+                <tr><td colspan="8" style="text-align: center; color: var(--safe-green);">No incident events recorded</td></tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!-- Incident Snapshot Modal -->
+    <div class="modal-overlay" id="snapshot-modal">
+        <div class="modal-content" style="max-width: 820px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+                <h3 id="snapshot-modal-title" style="font-size: 16px;">Incident Snapshot Review</h3>
+                <button onclick="closeSnapshotModal()" style="padding: 4px 10px;">Close ✕</button>
+            </div>
+            <div style="background: #000; border-radius: 6px; overflow: hidden; display: flex; justify-content: center; align-items: center; min-height: 380px;">
+                <img id="snapshot-modal-img" src="" alt="Incident Snapshot" style="max-width: 100%; max-height: 520px; object-fit: contain;">
+            </div>
+            <div id="snapshot-modal-meta" style="font-size: 12px; color: var(--text-dim); margin-top: 10px; line-height: 1.5;"></div>
+        </div>
+    </div>
+
     <script>
+        // Telemetry Update Loop
         async function updateTelemetry() {
             try {
                 const res = await fetch('/api/telemetry?t=' + Date.now());
@@ -333,6 +561,136 @@ HTML_DASHBOARD = """<!DOCTYPE html>
             }
         }
 
+        // Feature 2: Road Condition Poller
+        async function updateRoadHazards() {
+            try {
+                const [summaryRes, hazardsRes] = await Promise.all([
+                    fetch('/api/road/summary?t=' + Date.now()),
+                    fetch('/api/road/hazards?t=' + Date.now())
+                ]);
+
+                if (summaryRes.ok) {
+                    const s = await summaryRes.json();
+                    document.getElementById('road-active-hazards').innerText = s.active_hazards;
+                    document.getElementById('road-critical-hazards').innerText = s.critical_hazards;
+                    document.getElementById('road-resolved-hazards').innerText = s.resolved_hazards;
+                    document.getElementById('road-total-hazards').innerText = s.total_hazards_logged;
+                    document.getElementById('road-model-status-text').innerText = s.model_status;
+                }
+
+                if (hazardsRes.ok) {
+                    const hazards = await hazardsRes.json();
+                    const tbody = document.getElementById('road-hazards-tbody');
+                    if (!hazards || hazards.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--safe-green);">Road traversable corridor is clear of surface hazards</td></tr>';
+                    } else {
+                        let html = '';
+                        for (const h of hazards) {
+                            const sevClass = h.severity === 'CRITICAL' ? 'badge-CRITICAL' : 'badge-CAUTION';
+                            const evParam = encodeURIComponent(h.evidence_image_path || '');
+                            html += `<tr>
+                                <td><b>${h.hazard_id}</b></td>
+                                <td>${h.category}</td>
+                                <td><span class="tier-badge ${sevClass}">${h.severity}</span></td>
+                                <td>${(h.confidence * 100).toFixed(0)}%</td>
+                                <td>${h.status}</td>
+                                <td>${h.source_vehicle_id}</td>
+                                <td><button onclick="previewEvidence('${h.hazard_id}', '${evParam}', '${h.category}')" style="padding: 4px 8px; font-size: 11px;">View Snapshot</button></td>
+                            </tr>`;
+                        }
+                        tbody.innerHTML = html;
+                    }
+                }
+            } catch (e) {
+                console.error("Road intelligence error:", e);
+            }
+        }
+
+        function previewEvidence(id, encodedPath, category) {
+            const path = decodeURIComponent(encodedPath);
+            const img = document.getElementById('evidence-preview-img');
+            const placeholder = document.getElementById('evidence-placeholder');
+            const caption = document.getElementById('evidence-caption');
+
+            if (!path || path === 'None' || path === 'null') {
+                img.style.display = 'none';
+                placeholder.style.display = 'block';
+                placeholder.innerText = 'No evidence image stored for ' + id;
+                caption.innerText = '';
+            } else {
+                img.src = '/api/road/evidence?path=' + encodeURIComponent(path);
+                img.style.display = 'block';
+                placeholder.style.display = 'none';
+                caption.innerText = `${id} — ${category}`;
+            }
+        }
+
+        // Feature 1: Automatic Incident Recorder Poller
+        async function updateIncidents() {
+            try {
+                const [sumRes, listRes] = await Promise.all([
+                    fetch('/api/incidents/summary?t=' + Date.now()),
+                    fetch('/api/incidents/list?t=' + Date.now())
+                ]);
+
+                if (sumRes.ok) {
+                    const s = await sumRes.json();
+                    document.getElementById('inc-total-count').innerText = s.total_incidents;
+                    document.getElementById('inc-critical-count').innerText = s.critical_incidents;
+                    document.getElementById('inc-near-miss-count').innerText = s.near_misses;
+                    document.getElementById('inc-hazard-count').innerText = s.road_hazard_incidents;
+                    document.getElementById('inc-today-count').innerText = s.today_incidents;
+                }
+
+                if (listRes.ok) {
+                    const list = await listRes.json();
+                    const tbody = document.getElementById('incidents-tbody');
+                    if (!list || list.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--safe-green);">No incident events recorded</td></tr>';
+                    } else {
+                        let html = '';
+                        for (const inc of list) {
+                            const sevClass = inc.severity === 'CRITICAL' ? 'badge-CRITICAL' : 'badge-CAUTION';
+                            const timeStr = new Date(inc.timestamp * 1000).toLocaleTimeString();
+                            const ttcDist = `${inc.ttc_seconds ? inc.ttc_seconds.toFixed(1) + 's' : '--'} / ${inc.distance_m ? inc.distance_m.toFixed(1) + 'm' : '--'}`;
+                            html += `<tr>
+                                <td><b>${inc.incident_id}</b></td>
+                                <td>${inc.event_type}</td>
+                                <td><span class="tier-badge ${sevClass}">${inc.severity}</span></td>
+                                <td>${timeStr}</td>
+                                <td>${inc.vehicle_id}</td>
+                                <td>${ttcDist}</td>
+                                <td>${inc.description || '--'}</td>
+                                <td><button onclick="previewIncidentSnapshot('${inc.incident_id}', '${encodeURIComponent(inc.video_path || '')}', '${inc.event_type}', '${inc.description || ''}')" style="padding: 4px 10px; font-size: 11px; background: #238636; border-color: #2ea043; font-weight: bold;">📷 View Snapshot</button></td>
+                            </tr>`;
+                        }
+                        tbody.innerHTML = html;
+                    }
+                }
+            } catch (e) {
+                console.error("Incident recorder error:", e);
+            }
+        }
+
+        function previewIncidentSnapshot(incId, encodedPath, eventType, description) {
+            const path = decodeURIComponent(encodedPath);
+            const modal = document.getElementById('snapshot-modal');
+            const img = document.getElementById('snapshot-modal-img');
+            const title = document.getElementById('snapshot-modal-title');
+            const meta = document.getElementById('snapshot-modal-meta');
+
+            title.innerText = "Incident Evidence Snapshot — " + incId;
+            img.src = "/api/incidents/snapshot?id=" + encodeURIComponent(incId) + "&path=" + encodeURIComponent(path);
+            meta.innerHTML = `<b>Event:</b> ${eventType} | <b>Incident Vault ID:</b> ${incId}<br><b>Details:</b> ${description || 'Automated safety trigger snapshot captured.'}`;
+            modal.style.display = 'flex';
+        }
+
+        function closeSnapshotModal() {
+            const img = document.getElementById('snapshot-modal-img');
+            img.src = "";
+            document.getElementById('snapshot-modal').style.display = 'none';
+        }
+
         async function changeVideoSource() {
             const select = document.getElementById('source-select');
             const val = select.value;
@@ -394,9 +752,15 @@ HTML_DASHBOARD = """<!DOCTYPE html>
             xhr.send(file);
         }
 
-        // Poll telemetry every 300ms
+        // Pollers: Live stream 400ms, Road 2500ms, Incidents 3500ms
         updateTelemetry();
-        setInterval(updateTelemetry, 300);
+        setInterval(updateTelemetry, 400);
+
+        updateRoadHazards();
+        setInterval(updateRoadHazards, 2500);
+
+        updateIncidents();
+        setInterval(updateIncidents, 3500);
     </script>
 </body>
 </html>
@@ -428,6 +792,147 @@ class DashboardHTTPRequestHandler(BaseHTTPRequestHandler):
                 telemetry = {"system_status": "OFFLINE", "active_engine": "NONE"}
 
             self.wfile.write(json.dumps(telemetry).encode("utf-8"))
+
+        # --- FEATURE 3: FLEET COORDINATION ENDPOINTS ---
+        elif parsed.path == "/api/fleet/summary":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            data = adapter.fleet_manager.get_fleet_summary() if adapter and hasattr(adapter, "fleet_manager") else {}
+            self.wfile.write(json.dumps(data).encode("utf-8"))
+
+        elif parsed.path == "/api/fleet/vehicles":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            data = adapter.fleet_manager.get_all_vehicles() if adapter and hasattr(adapter, "fleet_manager") else []
+            self.wfile.write(json.dumps(data).encode("utf-8"))
+
+        elif parsed.path == "/api/fleet/alerts":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            data = adapter.fleet_manager.get_active_alerts() if adapter and hasattr(adapter, "fleet_manager") else []
+            self.wfile.write(json.dumps(data).encode("utf-8"))
+
+        elif parsed.path == "/api/fleet/hazards":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            data = adapter.fleet_manager.get_shared_hazards() if adapter and hasattr(adapter, "fleet_manager") else []
+            self.wfile.write(json.dumps(data).encode("utf-8"))
+
+        # --- FEATURE 2: ROAD CONDITION INTELLIGENCE ENDPOINTS ---
+        elif parsed.path == "/api/road/summary":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            data = adapter.road_intelligence.get_summary() if adapter and hasattr(adapter, "road_intelligence") else {}
+            self.wfile.write(json.dumps(data).encode("utf-8"))
+
+        elif parsed.path == "/api/road/hazards":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            data = adapter.road_intelligence.get_all_hazards() if adapter and hasattr(adapter, "road_intelligence") else []
+            self.wfile.write(json.dumps(data).encode("utf-8"))
+
+        elif parsed.path == "/api/road/evidence":
+            query = urllib.parse.parse_qs(parsed.query)
+            ev_path = query.get("path", [""])[0]
+            target_p = Path(ev_path)
+            if target_p.exists() and target_p.is_file():
+                self.send_response(200)
+                self.send_header("Content-Type", "image/jpeg")
+                self.end_headers()
+                with open(target_p, "rb") as f:
+                    self.wfile.write(f.read())
+            else:
+                self.send_response(404)
+                self.end_headers()
+
+        # --- FEATURE 1: AUTOMATIC INCIDENT RECORDER ENDPOINTS ---
+        elif parsed.path == "/api/incidents/summary":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            data = adapter.incident_recorder.get_summary() if adapter and hasattr(adapter, "incident_recorder") else {}
+            self.wfile.write(json.dumps(data).encode("utf-8"))
+
+        elif parsed.path == "/api/incidents/list":
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Access-Control-Allow-Origin", "*")
+            self.end_headers()
+            data = adapter.incident_recorder.get_all_incidents() if adapter and hasattr(adapter, "incident_recorder") else []
+            self.wfile.write(json.dumps(data).encode("utf-8"))
+
+        elif parsed.path == "/api/incidents/snapshot":
+            query = urllib.parse.parse_qs(parsed.query)
+            inc_id = query.get("id", [""])[0]
+            req_path = query.get("path", [""])[0]
+            target_file = None
+
+            if req_path and Path(req_path).exists() and Path(req_path).is_file():
+                p = Path(req_path)
+                if p.suffix.lower() in (".jpg", ".jpeg", ".png"):
+                    target_file = p
+
+            if target_file is None and adapter and hasattr(adapter, "incident_recorder"):
+                incidents = adapter.incident_recorder.get_all_incidents()
+                for inc in incidents:
+                    if inc.get("incident_id") == inc_id:
+                        p = Path(inc.get("video_path", ""))
+                        if p.suffix.lower() in (".jpg", ".jpeg", ".png") and p.exists():
+                            target_file = p
+                            break
+                        # Check companion snapshot next to mp4
+                        snap_candidate = p.parent / f"{inc_id}_snap.jpg"
+                        if snap_candidate.exists():
+                            target_file = snap_candidate
+                            break
+
+            if target_file and target_file.exists():
+                self.send_response(200)
+                self.send_header("Content-Type", "image/jpeg")
+                self.send_header("Content-Length", str(target_file.stat().st_size))
+                self.end_headers()
+                with open(target_file, "rb") as sf:
+                    self.wfile.write(sf.read())
+            else:
+                self.send_response(404)
+                self.end_headers()
+
+        elif parsed.path == "/api/incidents/video":
+            query = urllib.parse.parse_qs(parsed.query)
+            inc_id = query.get("id", [""])[0]
+            video_file = None
+            if adapter and hasattr(adapter, "incident_recorder"):
+                incidents = adapter.incident_recorder.get_all_incidents()
+                for inc in incidents:
+                    if inc.get("incident_id") == inc_id:
+                        p = Path(inc.get("video_path", ""))
+                        if p.exists() and p.is_file():
+                            video_file = p
+                            break
+
+            if video_file:
+                self.send_response(200)
+                self.send_header("Content-Type", "video/mp4")
+                self.send_header("Content-Length", str(video_file.stat().st_size))
+                self.end_headers()
+                with open(video_file, "rb") as vf:
+                    self.wfile.write(vf.read())
+            else:
+                self.send_response(404)
+                self.end_headers()
 
         elif parsed.path == "/api/set_source":
             query = urllib.parse.parse_qs(parsed.query)
@@ -490,7 +995,7 @@ class DashboardHTTPRequestHandler(BaseHTTPRequestHandler):
                             self.wfile.write(b"\r\n")
                             last_frame_bytes = frame_bytes
 
-                    time.sleep(0.033)  # ~30 FPS polling
+                    time.sleep(0.030)  # Smooth 30+ FPS transmission
             except (ConnectionResetError, BrokenPipeError, ConnectionAbortedError):
                 pass
         else:
@@ -500,7 +1005,60 @@ class DashboardHTTPRequestHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         parsed = urllib.parse.urlparse(self.path)
 
-        if parsed.path == "/api/upload_video":
+        if parsed.path == "/api/fleet/register":
+            content_length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(content_length).decode("utf-8")
+            try:
+                payload = json.loads(body)
+                v_id = payload.get("vehicle_id")
+                v_name = payload.get("vehicle_name", v_id)
+                v_type = payload.get("vehicle_type", "HAUL_TRUCK")
+                is_sim = payload.get("is_simulated", False)
+                if adapter and hasattr(adapter, "fleet_manager"):
+                    success, msg = adapter.fleet_manager.register_vehicle(v_id, v_name, v_type, is_sim)
+                else:
+                    success, msg = False, "Fleet manager unavailable"
+                self.send_response(200 if success else 400)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": success, "message": msg}).encode("utf-8"))
+            except Exception as e:
+                self.send_response(400)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode("utf-8"))
+
+        elif parsed.path == "/api/fleet/telemetry":
+            content_length = int(self.headers.get("Content-Length", 0))
+            body = self.rfile.read(content_length).decode("utf-8")
+            try:
+                payload = json.loads(body)
+                telem = TelemetryMessage(
+                    vehicle_id=payload.get("vehicle_id", ""),
+                    timestamp=payload.get("timestamp", time.time()),
+                    latitude=payload.get("latitude"),
+                    longitude=payload.get("longitude"),
+                    speed_kmh=payload.get("speed_kmh"),
+                    heading_deg=payload.get("heading_deg"),
+                    camera_status=payload.get("camera_status", "ONLINE"),
+                    perception_status=payload.get("perception_status", "ACTIVE"),
+                    is_simulated=payload.get("is_simulated", False)
+                )
+                if adapter and hasattr(adapter, "fleet_manager"):
+                    success, msg = adapter.fleet_manager.ingest_telemetry(telem)
+                else:
+                    success, msg = False, "Fleet manager unavailable"
+                self.send_response(200 if success else 400)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": success, "message": msg}).encode("utf-8"))
+            except Exception as e:
+                self.send_response(400)
+                self.send_header("Content-Type", "application/json")
+                self.end_headers()
+                self.wfile.write(json.dumps({"success": False, "error": str(e)}).encode("utf-8"))
+
+        elif parsed.path == "/api/upload_video":
             content_length_str = self.headers.get("Content-Length")
             if not content_length_str:
                 self.send_response(400)
@@ -632,9 +1190,12 @@ def start_dashboard_server(host="0.0.0.0", port=8080):
 
     server_instance = ThreadingHTTPServer((host, port), DashboardHTTPRequestHandler)
     print("\n" + "=" * 65)
-    print("MINEGUARD AI — INTEGRATED ROAD CLEARANCE DASHBOARD ONLINE")
+    print("MINEGUARD AI — ADVANCED MINING SAFETY PLATFORM ONLINE")
     print(f"Local Access: http://127.0.0.1:{port}")
     print(f"Active Engine: {adapter.active_engine_name}")
+    print("Feature 3: Mine Fleet Coordination [ACTIVE]")
+    print("Feature 2: Mine Road Condition Intelligence [ACTIVE]")
+    print("Feature 1: Automatic Incident Recorder [ACTIVE]")
     print("=" * 65 + "\n")
 
     try:
